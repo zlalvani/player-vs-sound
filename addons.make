@@ -1,4 +1,4 @@
 ofxGui
-ofxAnimatable
+ofxBeat
 ofxBullet
 ofxFFT
