@@ -1,0 +1,4 @@
+ofxGui
+ofxAnimatable
+ofxBullet
+ofxFFT
