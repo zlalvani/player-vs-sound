@@ -2,6 +2,6 @@
 
 ###Dependencies: 
 
-ofxBeat
-ofxFFT
-ofxBullet
+ofxBeat  
+ofxFFT  
+ofxBullet  
