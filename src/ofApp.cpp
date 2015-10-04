@@ -2,7 +2,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	music.loadSound("sounds\\test.mp3");
+	music.loadSound("test.mp3");
 	music.setVolume(1.0f);
 	music.play();
 	music.setLoop(true);
