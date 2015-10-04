@@ -1,6 +1,9 @@
 #pragma once
 
 #include "ofMain.h"
+#include "Shield.h"
+#include "ofxFFTLive.h"
+#include "ofxBullet.h"
 
 class ofApp : public ofBaseApp{
 
@@ -8,6 +11,8 @@ class ofApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
+
+		void onCollision(ofxBulletCollisionData &data);
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -22,5 +27,25 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 
 		ofSoundPlayer music;
+		float volume; 
+		ofxFFTLive fftLive;
+		float avgSound;
+		float* fftSmoothed;
+		int nBands;
 		
+		ofxBulletWorldRigid world;
+		Shield* shield;
+
+		btBoxShape* boxShape;
+		btSphereShape* sphereShape;
+
+		list<ofxBulletRigidBody*> obstacles;
+
+		ofxBulletRigidBody* player;
+
+		ofxBulletBox* ground;
+
+		vector<bool> bColliding;
+
+		ofCamera camera;
 };
