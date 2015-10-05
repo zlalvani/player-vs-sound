@@ -14,6 +14,7 @@ class ofApp : public ofBaseApp{
 		void draw();
 
 		void onCollision(ofxBulletCollisionData &cdata);
+		//void mousePickEvent(ofxBulletMousePickEvent &e);
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -35,7 +36,11 @@ class ofApp : public ofBaseApp{
 		int nBands;
 		
 		ofxBulletWorldRigid world;
+		ofLight	light;
+
 		Shield* shield;
+
+		ofColor backgroundColor;
 
 		btBoxShape* boxShape;
 		btSphereShape* sphereShape;
@@ -43,7 +48,7 @@ class ofApp : public ofBaseApp{
 		//list<ofxBulletRigidBody*> obstacles;
 		list<Obstacle> obstacles;
 
-		ofxBulletRigidBody* player;
+		ofxBulletBox* player;
 
 		ofxBulletBox* ground;
 		vector<ofxBulletBox*> bounds;

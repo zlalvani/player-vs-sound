@@ -5,14 +5,19 @@ void ofApp::setup(){
 	ofSetFrameRate(60);
 	ofEnableDepthTest(); //enable z-buffering
 
-	camera.setPosition(ofVec3f(0, -4.f, -40.f));
+	camera.setPosition(ofVec3f(0, 0, -40.f));
 	camera.lookAt(ofVec3f(0, 0, 0), ofVec3f(0, -1, 0));
 
 	world.setup();
+
+	world.enableGrabbing();
+	//ofAddListener(world.MOUSE_PICK_EVENT, this, &ofApp::mousePickEvent);
+
 	world.enableCollisionEvents();
 	ofAddListener(world.COLLISION_EVENT, this, &ofApp::onCollision);
 	world.setCamera(&camera);
-	world.setGravity(ofVec3f(0, 0, -25));
+	world.setGravity(ofVec3f(0, 0, -12));
+	light.setPosition(camera.getPosition().x, camera.getPosition().y - 14, camera.getPosition().z);
 
 	volume = 1.0;
 
@@ -26,10 +31,10 @@ void ofApp::setup(){
 
 	fftSmoothed = new float[8192];
 	memset(fftSmoothed, 0, sizeof(float) * 8192);
-	nBands = 8;
+	nBands = 16;
 
 	boxShape = ofBtGetBoxCollisionShape(2.65, 2.65, 2.65);
-	sphereShape = ofBtGetSphereCollisionShape(2.5);
+	sphereShape = ofBtGetSphereCollisionShape(.2);
 	/*
 	ofVec3f groundLoc;
 	ofPoint dimens;
@@ -79,23 +84,34 @@ void ofApp::setup(){
 		bounds[i]->setProperties(.25, .95);
 		bounds[i]->add();
 	}
+	player = new ofxBulletBox();
 
-	shield = new Shield(ofVec3f(0, 0, 0), ofColor::darkRed);
+	player->create(world.world, ofVec3f(0, 0, -30), 0, 3, 3, 1);
+	player->setProperties(.25, .2);
+	player->add();
+
+	backgroundColor = ofColor(ofColor::black);
+
+	ofBackground(backgroundColor);
+
+	shield = new Shield(ofVec3f(0, 0, 0), ofColor::black);
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	shield->update();
+	
 
 	ofSoundUpdate();
 	float* spectrum = ofSoundGetSpectrum(nBands);
+	shield->update(spectrum);
+
 	for (int i = 0; i < 2; i++){
-		if (spectrum[i] > .7){
+		if (spectrum[i] > .6){
 			obstacles.push_back(Obstacle());
 			ofxBulletRigidBody* temp_shape = obstacles.back().body;
 			((ofxBulletSphere*)temp_shape)->init(sphereShape);
 			((ofxBulletSphere*)temp_shape)->create(world.world, 
-				ofVec3f(ofRandom(-3, 3), ofRandom(-2, 2), ofRandom(-1, 1)), 0.2);
+				ofVec3f(ofRandom(-20, 20), ofRandom(-20, 20), -5), 2.0, .4);
 			//temp_shape->setActivationState(DISABLE_DEACTIVATION);
 			temp_shape->add();
 			break;
@@ -107,14 +123,17 @@ void ofApp::update(){
 	for (list<Obstacle>::iterator itr = obstacles.begin();
 	itr != obstacles.end(); itr++) {
 		itr->update();
-		if (itr->age >= 120) {
+		if (itr->age >= 400) {
 			itr_vec.push_back(itr);
 		}
 	}
 
 	for (unsigned int i = 0; i < itr_vec.size(); i++) {
+		itr_vec[i]->body->remove();
 		obstacles.erase(itr_vec[i]);
 	}
+
+	backgroundColor = ofColor(floor(spectrum[0] * 16) * 16, 0, 0);
 
 	world.update();
 	ofSetWindowTitle(ofToString(ofGetFrameRate(), 0));
@@ -122,19 +141,31 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+	glEnable(GL_DEPTH_TEST);
 	camera.begin();
 	shield->draw();
 
-	ofSetColor(ofColor::darkViolet);
+	//ofSetColor(ofColor::darkGrey);
+
+	ofEnableLighting();
+	light.enable();
+	ofBackground(backgroundColor);
 	//ground->draw();
 
-	ofSetColor(ofColor::red);
+	ofSetColor(ofColor::darkCyan);
 	for (list<Obstacle>::iterator itr = obstacles.begin();
 	itr != obstacles.end(); itr++) {
-		cout << "drawing" << endl;
+		//cout << "drawing" << endl;
 		itr->body->draw();
 	}
+	ofSetColor(ofColor::blueViolet, 50);
+	player->draw();
+
+	light.disable();
+	ofDisableLighting();
+
 	camera.end();
+	glDisable(GL_DEPTH_TEST);
 	ofPushMatrix();
 
 	//ofTranslate(0, 0, 0);
@@ -170,6 +201,12 @@ void ofApp::onCollision(ofxBulletCollisionData& cdata){
 	*/
 }
 
+/*
+void mousePickEvent(ofxBulletMousePickEvent &e) {
+
+}
+*/
+
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
 
@@ -187,12 +224,20 @@ void ofApp::mouseMoved(int x, int y ){
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
-
+	ofVec3f mouseLoc = camera.screenToWorld(ofVec3f((float)ofGetMouseX(), (float)ofGetMouseY(), 0));
+	player->remove();
+	player->create(world.world, mouseLoc, 0, 3, 3, 1);
+	player->setProperties(.25, .95);
+	player->add();
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-
+	ofVec3f mouseLoc = camera.screenToWorld(ofVec3f((float)ofGetMouseX(), (float)ofGetMouseY(), 0));
+	player->remove();
+	player->create(world.world, mouseLoc, 0, 3, 3, 1);
+	player->setProperties(.25, .95);
+	player->add();
 }
 
 //--------------------------------------------------------------

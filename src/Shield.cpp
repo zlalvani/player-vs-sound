@@ -23,7 +23,9 @@ Shield::Shield(ofVec3f startPos, ofColor color){
 	*/
 }
 
-void Shield::update(){
+void Shield::update(float* spectrum){
+	faceColor = ofColor(spectrum[3] * 16, 0, 0);
+	//cout << spectrum[1] << endl;
 	/*
 	velocity += acceleration;
 	velocity.limit(40);

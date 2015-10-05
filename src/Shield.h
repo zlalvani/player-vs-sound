@@ -18,7 +18,7 @@ class Shield {
 public:
 	Shield();
 	Shield(ofVec3f startPos, ofColor color);
-	void update();
+	void update(float* spectrum);
 	void draw();
 	
 };
