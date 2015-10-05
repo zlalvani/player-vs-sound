@@ -12,7 +12,7 @@ void ofApp::setup(){
 	world.enableCollisionEvents();
 	ofAddListener(world.COLLISION_EVENT, this, &ofApp::onCollision);
 	world.setCamera(&camera);
-	world.setGravity(ofVec3f(0, 25, 0));
+	world.setGravity(ofVec3f(0, 0, -25));
 
 	volume = 1.0;
 
@@ -26,11 +26,11 @@ void ofApp::setup(){
 
 	fftSmoothed = new float[8192];
 	memset(fftSmoothed, 0, sizeof(float) * 8192);
-	nBands = 128;
+	nBands = 8;
 
 	boxShape = ofBtGetBoxCollisionShape(2.65, 2.65, 2.65);
 	sphereShape = ofBtGetSphereCollisionShape(2.5);
-
+	/*
 	ofVec3f groundLoc;
 	ofPoint dimens;
 
@@ -39,13 +39,48 @@ void ofApp::setup(){
 	groundLoc.set(0.0, 16.0, 0.0);
 	dimens.set(30.0, 2.0, 30.0);
 	cout << "first check" << endl;
-	//ground->init()
 	ground->create(world.world, groundLoc, 0.0, dimens.x, dimens.y, dimens.z);
 	cout << "ground created" << endl;
 	ground->setProperties(.25, .95);
 	ground->add();
-	cout << "test" << endl;
-	shield = new Shield(ofVec3f(1000, 1000, -100), ofColor::aqua);
+	cout << "ground added" << endl;
+	*/
+	ofVec3f startLoc;
+	ofPoint dimens;
+	boundsWidth = 30.;
+	float hwidth = boundsWidth*.5;
+	float depth = 2.;
+	float hdepth = depth*.5;
+
+	for (int i = 0; i < 5; i++) {
+		bounds.push_back(new ofxBulletBox());
+		if (i == 0) { // ground //
+			startLoc.set(0., hwidth + hdepth, 0.);
+			dimens.set(boundsWidth, depth, boundsWidth);
+		}
+		else if (i == 1) { // back wall //
+			startLoc.set(0, 0, hwidth + hdepth);
+			dimens.set(boundsWidth, boundsWidth, depth);
+		}
+		else if (i == 2) { // right wall //
+			startLoc.set(hwidth + hdepth, 0, 0.);
+			dimens.set(depth, boundsWidth, boundsWidth);
+		}
+		else if (i == 3) { // left wall //
+			startLoc.set(-hwidth - hdepth, 0, 0.);
+			dimens.set(depth, boundsWidth, boundsWidth);
+		}
+		else if (i == 4) { // ceiling //
+			startLoc.set(0, -hwidth - hdepth, 0.);
+			dimens.set(boundsWidth, depth, boundsWidth);
+		}
+
+		bounds[i]->create(world.world, startLoc, 0., dimens.x, dimens.y, dimens.z);
+		bounds[i]->setProperties(.25, .95);
+		bounds[i]->add();
+	}
+
+	shield = new Shield(ofVec3f(0, 0, 0), ofColor::darkRed);
 }
 
 //--------------------------------------------------------------
@@ -54,20 +89,34 @@ void ofApp::update(){
 
 	ofSoundUpdate();
 	float* spectrum = ofSoundGetSpectrum(nBands);
-	for (int i = 0; i < nBands; i++){
-		if (spectrum[i] > .3){
-			obstacles.push_back(new ofxBulletSphere());
-			ofxBulletRigidBody* temp_shape = obstacles.back();
+	for (int i = 0; i < 2; i++){
+		if (spectrum[i] > .7){
+			obstacles.push_back(Obstacle());
+			ofxBulletRigidBody* temp_shape = obstacles.back().body;
 			((ofxBulletSphere*)temp_shape)->init(sphereShape);
 			((ofxBulletSphere*)temp_shape)->create(world.world, 
 				ofVec3f(ofRandom(-3, 3), ofRandom(-2, 2), ofRandom(-1, 1)), 0.2);
-			temp_shape->setActivationState(DISABLE_DEACTIVATION);
+			//temp_shape->setActivationState(DISABLE_DEACTIVATION);
 			temp_shape->add();
 			break;
 		}
 	}
 
 
+	vector<list<Obstacle>::iterator> itr_vec;
+	for (list<Obstacle>::iterator itr = obstacles.begin();
+	itr != obstacles.end(); itr++) {
+		itr->update();
+		if (itr->age >= 120) {
+			itr_vec.push_back(itr);
+		}
+	}
+
+	for (unsigned int i = 0; i < itr_vec.size(); i++) {
+		obstacles.erase(itr_vec[i]);
+	}
+
+	world.update();
 	ofSetWindowTitle(ofToString(ofGetFrameRate(), 0));
 }
 
@@ -76,11 +125,14 @@ void ofApp::draw(){
 	camera.begin();
 	shield->draw();
 
-	ground->draw();
+	ofSetColor(ofColor::darkViolet);
+	//ground->draw();
 
-	for (list<ofxBulletRigidBody*>::iterator itr = obstacles.begin();
+	ofSetColor(ofColor::red);
+	for (list<Obstacle>::iterator itr = obstacles.begin();
 	itr != obstacles.end(); itr++) {
-		(*itr)->draw();
+		cout << "drawing" << endl;
+		itr->body->draw();
 	}
 	camera.end();
 	ofPushMatrix();
@@ -104,8 +156,18 @@ void ofApp::draw(){
 }
 
 //--------------------------------------------------------------
-void ofApp::onCollision(ofxBulletCollisionData & data){
-
+void ofApp::onCollision(ofxBulletCollisionData& cdata){
+	//cout << "collision" << endl;
+	/*
+	if (*ground == cdata) {
+		cout << "deleting" << endl;
+		for (list<ofxBulletRigidBody*>::iterator itr = obstacles.begin();
+		itr != obstacles.end(); itr++) {
+			//delete *itr;	
+		}
+		//obstacles.clear();
+	}
+	*/
 }
 
 //--------------------------------------------------------------

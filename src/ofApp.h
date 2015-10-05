@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "Shield.h"
+#include "Obstacle.h"
 #include "ofxFFTLive.h"
 #include "ofxBullet.h"
 
@@ -12,7 +13,7 @@ class ofApp : public ofBaseApp{
 		void update();
 		void draw();
 
-		void onCollision(ofxBulletCollisionData &data);
+		void onCollision(ofxBulletCollisionData &cdata);
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -39,11 +40,14 @@ class ofApp : public ofBaseApp{
 		btBoxShape* boxShape;
 		btSphereShape* sphereShape;
 
-		list<ofxBulletRigidBody*> obstacles;
+		//list<ofxBulletRigidBody*> obstacles;
+		list<Obstacle> obstacles;
 
 		ofxBulletRigidBody* player;
 
 		ofxBulletBox* ground;
+		vector<ofxBulletBox*> bounds;
+		float boundsWidth;
 
 		vector<bool> bColliding;
 
