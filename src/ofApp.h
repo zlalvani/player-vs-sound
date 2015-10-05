@@ -5,6 +5,8 @@
 #include "Obstacle.h"
 #include "ofxFFTLive.h"
 #include "ofxBullet.h"
+#include "ofxAnimatableFloat.h"
+#include "ofxAnimatableOfColor.h"
 
 class ofApp : public ofBaseApp{
 
@@ -41,6 +43,12 @@ class ofApp : public ofBaseApp{
 		Shield* shield;
 
 		ofColor backgroundColor;
+		ofxAnimatableOfColor colorAnim;
+
+		ofColor playerColor;
+		ofxAnimatableOfColor playerAnim;
+
+		ofxAnimatableFloat speed;
 
 		btBoxShape* boxShape;
 		btSphereShape* sphereShape;

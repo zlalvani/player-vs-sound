@@ -1057,6 +1057,12 @@
     <ClCompile Include="..\..\..\addons\ofxFFT\libs\fft.cpp">
       <Filter>addons\ofxFFT\libs</Filter>
     </ClCompile>
+    <ClCompile Include="src\Shield.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Obstacle.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -2827,6 +2833,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\addons\ofxFFT\libs\fft.h">
       <Filter>addons\ofxFFT\libs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Shield.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Obstacle.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

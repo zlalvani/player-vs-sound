@@ -50,6 +50,8 @@ void ofApp::setup(){
 	ground->add();
 	cout << "ground added" << endl;
 	*/
+
+	/*
 	ofVec3f startLoc;
 	ofPoint dimens;
 	boundsWidth = 30.;
@@ -84,6 +86,7 @@ void ofApp::setup(){
 		bounds[i]->setProperties(.25, .95);
 		bounds[i]->add();
 	}
+	*/
 	player = new ofxBulletBox();
 
 	player->create(world.world, ofVec3f(0, 0, -30), 0, 3, 3, 1);
@@ -94,27 +97,47 @@ void ofApp::setup(){
 
 	ofBackground(backgroundColor);
 
+	colorAnim.setColor(ofColor::black);
+	colorAnim.setDuration(0.1f);
+	colorAnim.setRepeatType(LOOP);
+	colorAnim.setCurve(CUBIC_BEZIER_PARAM);
+
+	playerAnim.setColor(ofColor(ofColor::deepPink, 50));
+	playerAnim.setDuration(0.1f);
+	playerAnim.setRepeatType(LOOP);
+	playerAnim.setCurve(CUBIC_BEZIER_PARAM);
+
+	speed.reset(1.0);
+	speed.setCurve(EASE_IN);
+	speed.setRepeatType(LOOP);
+	speed.setDuration(.5);
+
 	shield = new Shield(ofVec3f(0, 0, 0), ofColor::black);
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 	
+	float dt = 1.0f / 60.0f;
 
 	ofSoundUpdate();
 	float* spectrum = ofSoundGetSpectrum(nBands);
 	shield->update(spectrum);
 
+	colorAnim.update(dt);
+	playerAnim.update(dt);
+	speed.update(dt);
+	music.setVolume(volume);
 	for (int i = 0; i < 2; i++){
 		if (spectrum[i] > .6){
 			obstacles.push_back(Obstacle());
 			ofxBulletRigidBody* temp_shape = obstacles.back().body;
 			((ofxBulletSphere*)temp_shape)->init(sphereShape);
 			((ofxBulletSphere*)temp_shape)->create(world.world, 
-				ofVec3f(ofRandom(-20, 20), ofRandom(-20, 20), -5), 2.0, .4);
+				ofVec3f(ofRandom(-15, 15), ofRandom(-15, 15), -5), 2.0, .4);
 			//temp_shape->setActivationState(DISABLE_DEACTIVATION);
 			temp_shape->add();
-			break;
+			//break;
 		}
 	}
 
@@ -132,9 +155,13 @@ void ofApp::update(){
 		itr_vec[i]->body->remove();
 		obstacles.erase(itr_vec[i]);
 	}
-
-	backgroundColor = ofColor(floor(spectrum[0] * 16) * 16, 0, 0);
-
+	if (volume <= .999) volume += .001;
+	playerColor = ofColor(255, volume * 128, volume * 128, 100 - 50 * volume);
+	backgroundColor = ofColor(spectrum[0] * 255, 0, 0);
+	colorAnim.animateTo(backgroundColor);
+	playerAnim.animateTo(playerColor);
+	speed.animateToIfFinished(spectrum[0]);
+	world.setGravity(ofVec3f(0, 0, -40 * speed.val()));
 	world.update();
 	ofSetWindowTitle(ofToString(ofGetFrameRate(), 0));
 }
@@ -149,16 +176,18 @@ void ofApp::draw(){
 
 	ofEnableLighting();
 	light.enable();
-	ofBackground(backgroundColor);
+	
 	//ground->draw();
 
-	ofSetColor(ofColor::darkCyan);
+	//ofSetColor(ofColor::darkCyan);
+	colorAnim.applyCurrentColor();
 	for (list<Obstacle>::iterator itr = obstacles.begin();
 	itr != obstacles.end(); itr++) {
 		//cout << "drawing" << endl;
 		itr->body->draw();
 	}
-	ofSetColor(ofColor::blueViolet, 50);
+	//ofSetColor(ofColor::darkRed, 50);
+	playerAnim.applyCurrentColor();
 	player->draw();
 
 	light.disable();
@@ -166,6 +195,8 @@ void ofApp::draw(){
 
 	camera.end();
 	glDisable(GL_DEPTH_TEST);
+
+	
 	ofPushMatrix();
 
 	//ofTranslate(0, 0, 0);
@@ -188,7 +219,12 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::onCollision(ofxBulletCollisionData& cdata){
-	//cout << "collision" << endl;
+	cout << "collision" << endl;
+	if (*player == cdata)
+	{
+		if (volume >= .1) volume -= .1;
+		cout << volume << endl;
+	}
 	/*
 	if (*ground == cdata) {
 		cout << "deleting" << endl;

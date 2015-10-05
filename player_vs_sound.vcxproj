@@ -172,6 +172,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Obstacle.cpp" />
     <ClCompile Include="src\ofApp.cpp" />
     <ClCompile Include="..\..\..\addons\ofxGui\src\ofxBaseGui.cpp" />
     <ClCompile Include="..\..\..\addons\ofxGui\src\ofxButton.cpp" />
@@ -349,8 +350,10 @@
     <ClCompile Include="..\..\..\addons\ofxFFT\src\ofxFFTFile.cpp" />
     <ClCompile Include="..\..\..\addons\ofxFFT\src\ofxFFTLive.cpp" />
     <ClCompile Include="..\..\..\addons\ofxFFT\libs\fft.cpp" />
+    <ClCompile Include="src\Shield.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Obstacle.h" />
     <ClInclude Include="src\ofApp.h" />
     <ClInclude Include="..\..\..\addons\ofxGui\src\ofxBaseGui.h" />
     <ClInclude Include="..\..\..\addons\ofxGui\src\ofxButton.h" />
@@ -629,6 +632,7 @@
     <ClInclude Include="..\..\..\addons\ofxFFT\src\ofxFFTFile.h" />
     <ClInclude Include="..\..\..\addons\ofxFFT\src\ofxFFTLive.h" />
     <ClInclude Include="..\..\..\addons\ofxFFT\libs\fft.h" />
+    <ClInclude Include="src\Shield.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(OF_ROOT)\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">
