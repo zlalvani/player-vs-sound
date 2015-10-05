@@ -5,3 +5,5 @@
 ofxBeat  
 ofxFFT  
 ofxBullet  
+ofxAnimatable  
+ofxGui  
