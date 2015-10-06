@@ -16,7 +16,6 @@ class ofApp : public ofBaseApp{
 		void draw();
 
 		void onCollision(ofxBulletCollisionData &cdata);
-		//void mousePickEvent(ofxBulletMousePickEvent &e);
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -53,7 +52,6 @@ class ofApp : public ofBaseApp{
 		btBoxShape* boxShape;
 		btSphereShape* sphereShape;
 
-		//list<ofxBulletRigidBody*> obstacles;
 		list<Obstacle> obstacles;
 
 		ofxBulletBox* player;
