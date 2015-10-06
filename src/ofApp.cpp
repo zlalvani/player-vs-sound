@@ -11,7 +11,6 @@ void ofApp::setup(){
 	world.setup();
 
 	world.enableGrabbing();
-	//ofAddListener(world.MOUSE_PICK_EVENT, this, &ofApp::mousePickEvent);
 
 	world.enableCollisionEvents();
 	ofAddListener(world.COLLISION_EVENT, this, &ofApp::onCollision);
@@ -35,58 +34,7 @@ void ofApp::setup(){
 
 	boxShape = ofBtGetBoxCollisionShape(2.65, 2.65, 2.65);
 	sphereShape = ofBtGetSphereCollisionShape(.2);
-	/*
-	ofVec3f groundLoc;
-	ofPoint dimens;
 
-	ground = new ofxBulletBox();
-
-	groundLoc.set(0.0, 16.0, 0.0);
-	dimens.set(30.0, 2.0, 30.0);
-	cout << "first check" << endl;
-	ground->create(world.world, groundLoc, 0.0, dimens.x, dimens.y, dimens.z);
-	cout << "ground created" << endl;
-	ground->setProperties(.25, .95);
-	ground->add();
-	cout << "ground added" << endl;
-	*/
-
-	/*
-	ofVec3f startLoc;
-	ofPoint dimens;
-	boundsWidth = 30.;
-	float hwidth = boundsWidth*.5;
-	float depth = 2.;
-	float hdepth = depth*.5;
-
-	for (int i = 0; i < 5; i++) {
-		bounds.push_back(new ofxBulletBox());
-		if (i == 0) { // ground //
-			startLoc.set(0., hwidth + hdepth, 0.);
-			dimens.set(boundsWidth, depth, boundsWidth);
-		}
-		else if (i == 1) { // back wall //
-			startLoc.set(0, 0, hwidth + hdepth);
-			dimens.set(boundsWidth, boundsWidth, depth);
-		}
-		else if (i == 2) { // right wall //
-			startLoc.set(hwidth + hdepth, 0, 0.);
-			dimens.set(depth, boundsWidth, boundsWidth);
-		}
-		else if (i == 3) { // left wall //
-			startLoc.set(-hwidth - hdepth, 0, 0.);
-			dimens.set(depth, boundsWidth, boundsWidth);
-		}
-		else if (i == 4) { // ceiling //
-			startLoc.set(0, -hwidth - hdepth, 0.);
-			dimens.set(boundsWidth, depth, boundsWidth);
-		}
-
-		bounds[i]->create(world.world, startLoc, 0., dimens.x, dimens.y, dimens.z);
-		bounds[i]->setProperties(.25, .95);
-		bounds[i]->add();
-	}
-	*/
 	player = new ofxBulletBox();
 
 	player->create(world.world, ofVec3f(0, 0, -30), 0, 3, 3, 1);
@@ -172,21 +120,15 @@ void ofApp::draw(){
 	camera.begin();
 	shield->draw();
 
-	//ofSetColor(ofColor::darkGrey);
-
 	ofEnableLighting();
 	light.enable();
-	
-	//ground->draw();
 
-	//ofSetColor(ofColor::darkCyan);
 	colorAnim.applyCurrentColor();
 	for (list<Obstacle>::iterator itr = obstacles.begin();
 	itr != obstacles.end(); itr++) {
 		//cout << "drawing" << endl;
 		itr->body->draw();
 	}
-	//ofSetColor(ofColor::darkRed, 50);
 	playerAnim.applyCurrentColor();
 	player->draw();
 
@@ -197,24 +139,7 @@ void ofApp::draw(){
 	glDisable(GL_DEPTH_TEST);
 
 	
-	ofPushMatrix();
 
-	//ofTranslate(0, 0, 0);
-
-	ofPopMatrix();
-	/*
-	ofSetColor(255, 255, 255);
-	stringstream ss;
-	ss << "framerate: " << ofToString(ofGetFrameRate(), 0) << endl;
-	ss << "num shapes: " << (shapes.size() + bounds.size()) << endl;
-	ss << "draw debug (d): " << ofToString(bDrawDebug, 0) << endl;
-	ss << "render shapes (r): " << ofToString(bRenderShapes, 0) << endl;
-	ss << "mouse force with spacebar: " << bSpacebar << endl;
-	ss << "force direction(f): " << bAddCenterAttract << endl;
-	ss << "add spherers (s)" << endl;
-	ss << "add boxes (b)" << endl;
-	ofDrawBitmapString(ss.str().c_str(), 10, 10);
-	*/
 }
 
 //--------------------------------------------------------------
@@ -225,23 +150,8 @@ void ofApp::onCollision(ofxBulletCollisionData& cdata){
 		if (volume >= .1) volume -= .1;
 		cout << volume << endl;
 	}
-	/*
-	if (*ground == cdata) {
-		cout << "deleting" << endl;
-		for (list<ofxBulletRigidBody*>::iterator itr = obstacles.begin();
-		itr != obstacles.end(); itr++) {
-			//delete *itr;	
-		}
-		//obstacles.clear();
-	}
-	*/
-}
-
-/*
-void mousePickEvent(ofxBulletMousePickEvent &e) {
 
 }
-*/
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
