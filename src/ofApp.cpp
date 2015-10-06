@@ -37,7 +37,7 @@ void ofApp::setup(){
 
 	player = new ofxBulletBox();
 
-	player->create(world.world, ofVec3f(0, 0, 0), 0, 3, 3, 1);
+	player->create(world.world, ofVec3f(0, 0, -30), 0, 3, 3, 1);
 	player->setProperties(.25, .2);
 	player->add();
 
