@@ -8,4 +8,4 @@ ofxBullet
 ofxAnimatable  
 ofxGui  
 
-To use: place music file in bin/data and rename to "test.mp3"
+To use: place music file in bin/data and rename to "test.mp3". Works best with bass heavy music.
