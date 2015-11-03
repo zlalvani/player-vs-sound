@@ -1,5 +1,18 @@
 #include "ofApp.h"
 
+void convertWindowsToUnixPath(string & path) {
+	for (int i = 0; i < path.size(); i++) {
+		if (path[i] == '\\') path[i] = '/';
+	}
+}
+
+string windowsFromUnixPath(string path) {
+	for (int i = 0; i < path.size(); i++) {
+		if (path[i] == '/') path[i] = '\\';
+	}
+	return path;
+}
+
 //--------------------------------------------------------------
 void ofApp::setup(){
 	ofSetFrameRate(60);
@@ -21,12 +34,12 @@ void ofApp::setup(){
 	light.setPosition(camera.getPosition().x, camera.getPosition().y - 14, camera.getPosition().z);
 
 	volume = 1.0;
-
+	/*
 	music.loadSound("test.mp3");
 	music.setVolume(volume);
 	music.play();
 	music.setLoop(true);
-
+	*/
 	fftLive.setMirrorData(false);
 	fftLive.setup();
 
@@ -79,8 +92,31 @@ void ofApp::setup(){
 	grayImg.allocate(vidWidth, vidHeight);
 	faceFinder.setup("haarcascade_frontalface_default.xml");
 	
+	gui.setup();
+	 
+	gui.add(enableFace.setup("Face Tracking", true));
+
+	hideGui = false;
 
 	shield = new Shield(ofVec3f(0, 0, 20), ofColor::red);
+
+	//line 563 of ofApp.cpp in project generator
+
+	ofDirectory dir(ofFilePath::getCurrentExeDir());
+#ifdef TARGET_WIN32
+	ofFileDialogResult res = ofSystemLoadDialog("Please select a song");//, true, windowsFromUnixPath(dir.path()));
+#else 
+	ofFileDialogResult res = ofSystemLoadDialog("Please select a song");//, true, dir.path());
+#endif
+	
+
+	if (res.bSuccess) {
+		string path = res.filePath;
+		music.loadSound(path);
+		music.setVolume(volume);
+		music.play();
+		music.setLoop(true);
+	}
 }
 
 //--------------------------------------------------------------
@@ -107,18 +143,22 @@ void ofApp::update(){
 	faceAnim.update(dt);
 	music.setVolume(volume);
 
-	if (ofGetFrameNum() % 30 == 0) { //&& vidGrabber.isFrameNew()) {
-		faceFinder.findHaarObjects(vidGrabber.getPixelsRef());
+	if (enableFace) {
+		if (ofGetFrameNum() % 10 == 0) { //&& vidGrabber.isFrameNew()) {
+			faceFinder.findHaarObjects(vidGrabber.getPixelsRef());
+			colorImg = vidGrabber.getPixels();
+			colorImg.mirror(false, true);
+			if (faceFinder.blobs.size()) {
+				ofxCvBlob blob = faceFinder.blobs.at(0);
+				//ofCircle(blob.centroid, blob.boundingRect.width / 2);
+				faceAnim.animateTo(ofPoint(
+					(blob.centroid.x / vidWidth * ofGetWidth()) * -1 + ofGetWidth(),
+					blob.centroid.y / vidHeight * ofGetHeight()));
+			}
 
-		if (faceFinder.blobs.size()){
-			ofxCvBlob blob = faceFinder.blobs.at(0);
-			//ofCircle(blob.centroid, blob.boundingRect.width / 2);
-			faceAnim.animateTo(ofPoint(
-			blob.centroid.x / vidWidth * ofGetWidth(), 
-			blob.centroid.y / vidHeight * ofGetHeight()));
 		}
-
 	}
+
 	
 	for (int i = 0; i < 2; i++){
 		if (spectrum[i] > .6){
@@ -147,11 +187,14 @@ void ofApp::update(){
 		obstacles.erase(itr_vec[i]);
 	}
 
-	ofVec3f faceLoc = camera.screenToWorld(ofVec3f(faceAnim.getCurrentPosition()));
-	player->remove();
-	player->create(world.world, faceLoc, 0, 3, 3, 1);
-	player->setProperties(.25, .95);
-	player->add();
+	if (enableFace) {
+		ofVec3f faceLoc = camera.screenToWorld(ofVec3f(faceAnim.getCurrentPosition()));
+		player->remove();
+		player->create(world.world, faceLoc, 0, 3, 3, 1);
+		player->setProperties(.25, .95);
+		player->add();
+	}
+
 
 
 	if (volume <= .999) volume += .001;
@@ -189,15 +232,20 @@ void ofApp::draw(){
 	camera.end();
 	glDisable(GL_DEPTH_TEST);
 
-	ofPushMatrix();
-	ofTranslate(0, ofGetHeight() - vidHeight);
-	vidGrabber.draw(0, 0);
-	for (int i = 0; i < faceFinder.blobs.size(); i++) {
-		ofxCvBlob blob = faceFinder.blobs.at(i);
-		ofCircle(blob.centroid, blob.boundingRect.width / 2);
+	if (enableFace) {
+		ofPushMatrix();
+		ofTranslate(0, ofGetHeight() - vidHeight);
+		colorImg.draw(0, 0);
+		for (int i = 0; i < faceFinder.blobs.size(); i++) {
+			ofxCvBlob blob = faceFinder.blobs.at(i);
+			ofCircle(ofPoint(blob.centroid.x * -1 + vidWidth, blob.centroid.y), blob.boundingRect.width / 2);
+		}
+		ofPopMatrix();
 	}
-	ofPopMatrix();
 
+	if (!hideGui) {
+		gui.draw();
+	}
 	
 
 }
@@ -243,7 +291,12 @@ void ofApp::onCollision(ofxBulletCollisionData& cdata){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+	if (key == 'f') {
+		enableFace = !enableFace;
+	}
+	else if (key == 'h') {
+		hideGui = !hideGui;
+	}
 }
 
 //--------------------------------------------------------------
@@ -258,39 +311,44 @@ void ofApp::mouseMoved(int x, int y ){
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
-	ofVec3f mouseLoc = camera.screenToWorld(ofVec3f((float)ofGetMouseX(), (float)ofGetMouseY(), 0));
-	/*
-	btTransform trans;
-	ofQuaternion rotQuat = player->getRotationQuat();
-	trans.setOrigin(btVector3(btScalar(mouseLoc.x), btScalar(mouseLoc.y), 0));
-	trans.setRotation(player->getRigidBody()->getWorldTransform().getRotation());
-	player->getRigidBody()->getMotionState()->setWorldTransform(trans);
-	player->activate();
-	*/
-	
-	player->remove();
-	player->create(world.world, mouseLoc, 0, 3, 3, 1);
-	player->setProperties(.25, .95);
-	player->add();
+	if (!enableFace) {
+		ofVec3f mouseLoc = camera.screenToWorld(ofVec3f((float)ofGetMouseX(), (float)ofGetMouseY(), 0));
+		/*
+		btTransform trans;
+		ofQuaternion rotQuat = player->getRotationQuat();
+		trans.setOrigin(btVector3(btScalar(mouseLoc.x), btScalar(mouseLoc.y), 0));
+		trans.setRotation(player->getRigidBody()->getWorldTransform().getRotation());
+		player->getRigidBody()->getMotionState()->setWorldTransform(trans);
+		player->activate();
+		*/
+
+		player->remove();
+		player->create(world.world, mouseLoc, 0, 3, 3, 1);
+		player->setProperties(.25, .95);
+		player->add();
+	}
+
 	
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-	ofVec3f mouseLoc = camera.screenToWorld(ofVec3f((float)ofGetMouseX(), (float)ofGetMouseY(), 0));
-	/*
-	btTransform trans;
-	ofQuaternion rotQuat = player->getRotationQuat();
-	trans.setOrigin(btVector3(btScalar(mouseLoc.x), btScalar(mouseLoc.y), 0));
-	trans.setRotation(player->getRigidBody()->getWorldTransform().getRotation());
-	player->getRigidBody()->getMotionState()->setWorldTransform(trans);
-	player->activate();
-	*/
+	if (!enableFace) {
+		ofVec3f mouseLoc = camera.screenToWorld(ofVec3f((float)ofGetMouseX(), (float)ofGetMouseY(), 0));
+		/*
+		btTransform trans;
+		ofQuaternion rotQuat = player->getRotationQuat();
+		trans.setOrigin(btVector3(btScalar(mouseLoc.x), btScalar(mouseLoc.y), 0));
+		trans.setRotation(player->getRigidBody()->getWorldTransform().getRotation());
+		player->getRigidBody()->getMotionState()->setWorldTransform(trans);
+		player->activate();
+		*/
 
-	player->remove();
-	player->create(world.world, mouseLoc, 0, 3, 3, 1);
-	player->setProperties(.25, .95);
-	player->add();
+		player->remove();
+		player->create(world.world, mouseLoc, 0, 3, 3, 1);
+		player->setProperties(.25, .95);
+		player->add();
+	}
 
 }
 

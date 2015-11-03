@@ -9,6 +9,7 @@
 #include "ofxAnimatableOfColor.h"
 #include "ofxAnimatableOfPoint.h"
 #include "ofxOpenCv.h"
+#include "OfxGui.h"
 
 class ofApp : public ofBaseApp{
 
@@ -79,4 +80,8 @@ class ofApp : public ofBaseApp{
 		ofxCvColorImage			colorImg;
 		ofxCvGrayscaleImage		grayImg;
 		ofxCvHaarFinder			faceFinder;
+
+		ofxPanel				gui;
+		ofxToggle				enableFace;
+		bool					hideGui;
 };
