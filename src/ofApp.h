@@ -7,6 +7,7 @@
 #include "ofxBullet.h"
 #include "ofxAnimatableFloat.h"
 #include "ofxAnimatableOfColor.h"
+#include "ofxAnimatableOfPoint.h"
 #include "ofxOpenCv.h"
 
 class ofApp : public ofBaseApp{
@@ -53,6 +54,8 @@ class ofApp : public ofBaseApp{
 
 		ofxAnimatableFloat		speed;
 
+		ofxAnimatableOfPoint	faceAnim;
+
 		btBoxShape*				boxShape;
 		btSphereShape*			sphereShape;
 
@@ -73,6 +76,7 @@ class ofApp : public ofBaseApp{
 		int						vidWidth, vidHeight;
 
 		ofVideoGrabber			vidGrabber;
+		ofxCvColorImage			colorImg;
 		ofxCvGrayscaleImage		grayImg;
 		ofxCvHaarFinder			faceFinder;
 };

@@ -45,6 +45,8 @@ void ofApp::setup(){
 	player->setProperties(.25, .2);
 	player->add();
 
+	player->enableKinematic();
+
 	backgroundColor = ofColor(ofColor::black);
 
 	ofBackground(backgroundColor);
@@ -63,6 +65,11 @@ void ofApp::setup(){
 	speed.setCurve(EASE_IN);
 	speed.setRepeatType(LOOP);
 	speed.setDuration(.5);
+
+	faceAnim.setDuration(1.0);
+	faceAnim.setPosition(ofPoint(ofGetWidth() / 2, ofGetHeight() / 2));
+	faceAnim.setRepeatType(PLAY_ONCE);
+	faceAnim.setCurve(EASE_IN_EASE_OUT);
 
 	vidWidth = 320;
 	vidHeight = 240;
@@ -93,10 +100,25 @@ void ofApp::update(){
 
 	shield->update(spectrum);
 
+
 	colorAnim.update(dt);
 	playerAnim.update(dt);
 	speed.update(dt);
+	faceAnim.update(dt);
 	music.setVolume(volume);
+
+	if (ofGetFrameNum() % 30 == 0) { //&& vidGrabber.isFrameNew()) {
+		faceFinder.findHaarObjects(vidGrabber.getPixelsRef());
+
+		if (faceFinder.blobs.size()){
+			ofxCvBlob blob = faceFinder.blobs.at(0);
+			//ofCircle(blob.centroid, blob.boundingRect.width / 2);
+			faceAnim.animateTo(ofPoint(
+			blob.centroid.x / vidWidth * ofGetWidth(), 
+			blob.centroid.y / vidHeight * ofGetHeight()));
+		}
+
+	}
 	
 	for (int i = 0; i < 2; i++){
 		if (spectrum[i] > .6){
@@ -120,11 +142,18 @@ void ofApp::update(){
 			itr_vec.push_back(itr);
 		}
 	}
-
 	for (unsigned int i = 0; i < itr_vec.size(); i++) {
 		itr_vec[i]->body->remove();
 		obstacles.erase(itr_vec[i]);
 	}
+
+	ofVec3f faceLoc = camera.screenToWorld(ofVec3f(faceAnim.getCurrentPosition()));
+	player->remove();
+	player->create(world.world, faceLoc, 0, 3, 3, 1);
+	player->setProperties(.25, .95);
+	player->add();
+
+
 	if (volume <= .999) volume += .001;
 	playerColor = ofColor(255, volume * 128, volume * 128, 100 - 50 * volume);
 	backgroundColor = ofColor(spectrum[0] * 255, 0, 0);
@@ -159,6 +188,15 @@ void ofApp::draw(){
 
 	camera.end();
 	glDisable(GL_DEPTH_TEST);
+
+	ofPushMatrix();
+	ofTranslate(0, ofGetHeight() - vidHeight);
+	vidGrabber.draw(0, 0);
+	for (int i = 0; i < faceFinder.blobs.size(); i++) {
+		ofxCvBlob blob = faceFinder.blobs.at(i);
+		ofCircle(blob.centroid, blob.boundingRect.width / 2);
+	}
+	ofPopMatrix();
 
 	
 
@@ -221,19 +259,39 @@ void ofApp::mouseMoved(int x, int y ){
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
 	ofVec3f mouseLoc = camera.screenToWorld(ofVec3f((float)ofGetMouseX(), (float)ofGetMouseY(), 0));
+	/*
+	btTransform trans;
+	ofQuaternion rotQuat = player->getRotationQuat();
+	trans.setOrigin(btVector3(btScalar(mouseLoc.x), btScalar(mouseLoc.y), 0));
+	trans.setRotation(player->getRigidBody()->getWorldTransform().getRotation());
+	player->getRigidBody()->getMotionState()->setWorldTransform(trans);
+	player->activate();
+	*/
+	
 	player->remove();
 	player->create(world.world, mouseLoc, 0, 3, 3, 1);
 	player->setProperties(.25, .95);
 	player->add();
+	
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
 	ofVec3f mouseLoc = camera.screenToWorld(ofVec3f((float)ofGetMouseX(), (float)ofGetMouseY(), 0));
+	/*
+	btTransform trans;
+	ofQuaternion rotQuat = player->getRotationQuat();
+	trans.setOrigin(btVector3(btScalar(mouseLoc.x), btScalar(mouseLoc.y), 0));
+	trans.setRotation(player->getRigidBody()->getWorldTransform().getRotation());
+	player->getRigidBody()->getMotionState()->setWorldTransform(trans);
+	player->activate();
+	*/
+
 	player->remove();
 	player->create(world.world, mouseLoc, 0, 3, 3, 1);
 	player->setProperties(.25, .95);
 	player->add();
+
 }
 
 //--------------------------------------------------------------
