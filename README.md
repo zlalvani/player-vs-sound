@@ -2,10 +2,10 @@
 
 ###Dependencies: 
 
-ofxBeat  
 ofxFFT  
 ofxBullet  
 ofxAnimatable  
-ofxGui  
+ofxGui
+ofxOpenCv
 
-To use: place music file in bin/data and rename to "test.mp3". Works best with bass heavy music.
+To use: choose music file on program start. Works best with bass heavy music. 
