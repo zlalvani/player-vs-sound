@@ -7,6 +7,9 @@
 #include "ofxBullet.h"
 #include "ofxAnimatableFloat.h"
 #include "ofxAnimatableOfColor.h"
+#include "ofxAnimatableOfPoint.h"
+#include "ofxOpenCv.h"
+#include "OfxGui.h"
 
 class ofApp : public ofBaseApp{
 
@@ -15,6 +18,7 @@ class ofApp : public ofBaseApp{
 		void update();
 		void draw();
 
+		float getRollingAverage(list<float> &values, float value);
 		void onCollision(ofxBulletCollisionData &cdata);
 
 		void keyPressed(int key);
@@ -29,38 +33,58 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
-		ofSoundPlayer music;
-		float volume; 
-		ofxFFTLive fftLive;
-		float avgSound;
-		float* fftSmoothed;
-		int nBands;
+		ofSoundPlayer			music;
+		float					volume; 
+		ofxFFTLive				fftLive;
+		float					avgSound;
+		float*					fftSmoothed;
+		int						nBands;
+		list<float>*			spectrumAverages;
+		int						smoothAmount;
 		
-		ofxBulletWorldRigid world;
-		ofLight	light;
+		ofxBulletWorldRigid		world;
+		ofLight					light;
 
-		Shield* shield;
+		Shield*					shield;
 
-		ofColor backgroundColor;
-		ofxAnimatableOfColor colorAnim;
+		ofColor					backgroundColor;
+		ofxAnimatableOfColor	colorAnim;
 
-		ofColor playerColor;
-		ofxAnimatableOfColor playerAnim;
+		ofColor					playerColor;
+		ofxAnimatableOfColor	playerAnim;
 
-		ofxAnimatableFloat speed;
+		ofxAnimatableFloat		speed;
 
-		btBoxShape* boxShape;
-		btSphereShape* sphereShape;
+		ofxAnimatableOfPoint	faceAnim;
 
-		list<Obstacle> obstacles;
+		list<Obstacle>			obstacles;
 
-		ofxBulletBox* player;
+		btBoxShape*				boxShape;
+		btSphereShape*			sphereShape;
 
-		ofxBulletBox* ground;
-		vector<ofxBulletBox*> bounds;
-		float boundsWidth;
+		ofxBulletBox*			player;
 
-		vector<bool> bColliding;
+		ofxBulletBox*			ground;
+		vector<ofxBulletBox*>	bounds;
+		float					boundsWidth;
 
-		ofCamera camera;
+		vector<bool>			bColliding;
+
+		ofCamera				camera;
+
+		int						vidWidth, vidHeight;
+
+		ofVideoGrabber			vidGrabber;
+		ofxCvColorImage			colorImg;
+		ofxCvGrayscaleImage		grayImg;
+		ofxCvHaarFinder			faceFinder;
+
+		ofxPanel				gui;
+		ofxToggle				enableFace;
+		bool					hideGui;
+		ofxToggle				paused;
+		//ofxToggle				newSong;
+		bool					newSong;
+		string					path;
+		ofFileDialogResult		res;
 };

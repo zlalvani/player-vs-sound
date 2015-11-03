@@ -2,8 +2,11 @@
 
 ###Dependencies: 
 
-ofxBeat  
 ofxFFT  
 ofxBullet  
 ofxAnimatable  
-ofxGui  
+ofxGui
+
+ofxOpenCv
+
+To use: choose music file on program start. Works best with bass heavy music. 
