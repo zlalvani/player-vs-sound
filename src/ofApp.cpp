@@ -5,6 +5,8 @@ void ofApp::setup(){
 	ofSetFrameRate(60);
 	ofEnableDepthTest(); //enable z-buffering
 
+	smoothAmount = 3;
+
 	camera.setPosition(ofVec3f(0, 0, -40.f));
 	camera.lookAt(ofVec3f(0, 0, 0), ofVec3f(0, -1, 0));
 
@@ -31,6 +33,8 @@ void ofApp::setup(){
 	fftSmoothed = new float[8192];
 	memset(fftSmoothed, 0, sizeof(float) * 8192);
 	nBands = 16;
+
+	spectrumAverages = new list<float>[nBands];
 
 	boxShape = ofBtGetBoxCollisionShape(2.65, 2.65, 2.65);
 	sphereShape = ofBtGetSphereCollisionShape(.2);
@@ -60,7 +64,16 @@ void ofApp::setup(){
 	speed.setRepeatType(LOOP);
 	speed.setDuration(.5);
 
-	shield = new Shield(ofVec3f(0, 0, 0), ofColor::black);
+	vidWidth = 320;
+	vidHeight = 240;
+
+	vidGrabber.setVerbose(true);
+	vidGrabber.initGrabber(vidWidth, vidHeight);
+	grayImg.allocate(vidWidth, vidHeight);
+	faceFinder.setup("haarcascade_frontalface_default.xml");
+	
+
+	shield = new Shield(ofVec3f(0, 0, 20), ofColor::red);
 }
 
 //--------------------------------------------------------------
@@ -68,14 +81,23 @@ void ofApp::update(){
 	
 	float dt = 1.0f / 60.0f;
 
+	vidGrabber.update();
+
 	ofSoundUpdate();
 	float* spectrum = ofSoundGetSpectrum(nBands);
+	for (int i = 0; i < nBands; i++){
+		//cout << "current: " << spectrum[i];
+		spectrum[i] = getRollingAverage(spectrumAverages[i], spectrum[i]);
+		//cout << "avg: " << spectrum[i] << endl;
+	}
+
 	shield->update(spectrum);
 
 	colorAnim.update(dt);
 	playerAnim.update(dt);
 	speed.update(dt);
 	music.setVolume(volume);
+	
 	for (int i = 0; i < 2; i++){
 		if (spectrum[i] > .6){
 			obstacles.push_back(Obstacle());
@@ -88,7 +110,7 @@ void ofApp::update(){
 			//break;
 		}
 	}
-
+	
 
 	vector<list<Obstacle>::iterator> itr_vec;
 	for (list<Obstacle>::iterator itr = obstacles.begin();
@@ -142,9 +164,37 @@ void ofApp::draw(){
 
 }
 
+float ofApp::getRollingAverage(list<float> &values, float value) {
+	unsigned int length = 0; 
+	float average = 0.0;
+	for (list<float>::iterator itr = values.begin();
+		itr != values.end(); itr++) {
+		length++;
+		average += *itr;
+	}
+	if (length == smoothAmount){
+		average -= values.front();
+		values.pop_front();
+		values.push_back(value);
+		average += value;
+		average /= (float)smoothAmount;
+	}
+	else if (length < smoothAmount) {
+		values.push_back(value);
+		average += value;
+		length++;
+		average /= (float)length;
+	}
+	return average;
+	
+}
+
 //--------------------------------------------------------------
 void ofApp::onCollision(ofxBulletCollisionData& cdata){
 	cout << "collision" << endl;
+
+	//CustomBulletData* ud1 = (CustomBulletData*)cdata->userData1;
+	//http://forum.openframeworks.cc/t/ofxbullet-cdata/15073
 	if (*player == cdata)
 	{
 		if (volume >= .1) volume -= .1;

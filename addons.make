@@ -1,4 +1,5 @@
 ofxGui
-ofxBeat
+ofxOpenCv
+ofxAnimatable
 ofxBullet
 ofxFFT
